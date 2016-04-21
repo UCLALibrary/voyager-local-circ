@@ -57,5 +57,5 @@ else
 fi
 
 # 2009-08-06 added lines to remove old output files every quarter drickard
-find ${DIR} -type f -name '${BAR_FILE_NAME}.*' -mtime +90 -exec rm {} \;
+find ${DIR} -type f -name "${BAR_FILE_NAME}.*" -mtime +90 -exec rm {} \;
 
