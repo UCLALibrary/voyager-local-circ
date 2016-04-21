@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# Send latest BAR file to BAR.
+
+# Everything goes in here
+BIN=/opt/local/bin
+DIR=/m1/voyager/ucladb/local/circ
+#AIS_FTP_HOST=viper.ais.ucla.edu
+AIS_FTP_HOST=fx.it.ucla.edu
+BAR_FILE_LAST_SENT_FILE=$DIR/BAR_FILE_LAST_SENT
+BAR_FILE_NAME=ucla.libr.br0.0001.txt
+DOWNLOADED_BAR_FILE=downloaded_bar_file.txt
+DOWNLOADED_BAR_FILE_FULLPATH=$DIR/downloaded_bar_file.txt
+
+# enable following code 9 October
+# set FTP user & retrieve pwd
+USER=bar_library
+PWD=`${BIN}/get_value.pl ${BIN}/ais_credentials ${USER}`
+
+# Remove previously downloaded file.
+
+if [ -f $DOWNLOADED_BAR_FILE_FULLPATH ]; then
+  rm $DOWNLOADED_BAR_FILE_FULLPATH
+fi
+
+# Download the existing BAR file. 
+# enable user lines & alternate FTP call on 9 October
+cd ${DIR}
+(
+  echo "user ${USER} ${PWD}"
+  echo "ascii"
+  echo "cd pub"
+  echo "get $BAR_FILE_NAME $DOWNLOADED_BAR_FILE"
+  echo "bye"
+) | ftp -n -v ${AIS_FTP_HOST}
+
+# It's zeroed out after BAR has processed it. If it's not zero 
+# that means something's wrong and requires manual intervention.
+
+if [ -f $DOWNLOADED_BAR_FILE_FULLPATH ]; then
+  if [ -s $DOWNLOADED_BAR_FILE_FULLPATH ]; then
+    echo "*** BAR file $DOWNLOADED_BAR_FILE is not zero. ***"
+  else
+    # Upload the BAR file to BAR.
+    (
+      echo "user ${USER} ${PWD}"
+      echo "ascii"
+      echo "cd pub"
+      echo "put $BAR_FILE_NAME"
+      echo "bye"
+    ) | ftp -n -v ${AIS_FTP_HOST} ;
+    # Rotate the file.
+    mv $BAR_FILE_NAME $BAR_FILE_NAME.`date "+%Y%m%d"`
+  fi
+else
+  echo "*** BAR file $DOWNLOADED_BAR_FILE does not exist or is not a regular file. ***"
+fi
+
+# 2009-08-06 added lines to remove old output files every quarter drickard
+find ${DIR} -type f -name '${BAR_FILE_NAME}.*' -mtime +90 -exec rm {} \;
+

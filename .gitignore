@@ -1,0 +1,29 @@
+# Ignore various input/output files.
+# TODO: Update scripts to isolate these temporary files
+# from the permanent ones.
+
+# Transient files, usually re-used daily/monthly
+*.bad
+*.err
+*.log
+*.out
+
+# Monthly report files, named with date embedded
+cct_*.txt
+charges_*.txt
+discharges_*.txt
+overdue_*.txt
+renewals_*.txt
+
+# BAR processing files, named with date appended (usually)
+BAR_QDB_LAST_RUN
+bar_qdb_data.txt
+*_bar_qdb_data.txt
+daily-forgive_fines_on_returned_items.out*
+daily-refund_bar_charges_on_returned_items.out*
+delete_suspension_notes.out*
+downloaded_bar_file.txt
+post_bar_charges.out*
+suspend_outstanding_bar.out*
+ucla.libr.br0.0001.txt*
+

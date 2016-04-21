@@ -1,0 +1,62 @@
+#!/bin/sh
+############################################################
+# Run a query in QDB and output the results to a file.
+#
+# Last revised: 2009-10-14 gloriar
+# Last revised: 2008-08-15 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0 name"
+  echo "  where \${name}.sql is the query to run."
+  echo "  Output is to \${name}.out."
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+PREFIX=/m1/voyager/ucladb/local/circ
+USERNAME=`cut -f1 /opt/local/bin/qdb_credentials`
+PASSWORD=`cut -f2 /opt/local/bin/qdb_credentials`
+
+# 2009-10-14 gloriar: upgraded FreeTDS and moved its executables
+#PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
+PATH=/usr/local/freetds/bin:$PATH	export PATH
+# 2009-10-14 gloriar: upgraded FreeTDS executables find their libraries in
+#   /usr/local/lib, which requires no entry in LD_LIBRARY_PATH
+#LD_LIBRARY_PATH=/m1/voyager/ucladb/local/patron/lib
+#export PATH
+#export LD_LIBRARY_PATH
+
+# name is required.
+if [ -n "$1" ]; then
+  QUERY=$1.sql
+  QDB_DATA=$1.out
+else
+  _show_usage
+  exit
+fi
+
+# if there's a 2nd paramenter incorrectly specified, show usage and exit
+if [ -n "$2" ]; then
+  _show_usage
+fi
+
+if [ ! -r ${QUERY} ]; then
+  echo Query file ${QUERY} must exist and be readable.
+  exit
+fi
+
+# Run the query against the qdb database.
+echo "***** Running query file against the qdb database to create ${QDB_DATA}."
+TDSVER=8.0 tsql -H obiwan.qdb.ucla.edu -p 1433 -U ${USERNAME} -P ${PASSWORD} < ${QUERY} > ${QDB_DATA}
+
+echo "***** Removing the last line of the data file."
+/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
+
+if [ -f ${QDB_DATA}.tmp ]; then
+  echo "***** Removing qdb data file with extra line ${QDB_DATA}.tmp."
+  rm ${QDB_DATA}.tmp
+fi

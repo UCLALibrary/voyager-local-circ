@@ -1,0 +1,38 @@
+#!/bin/sh
+############################################################
+# Forgive lost item replacement fines on returned items. 
+#
+# Last revised: 2008-04-29 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0"
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+DIR=/m1/voyager/ucladb/local/circ
+
+# No input parameters are necessary. 
+# If any are provided show usage and exit.
+if [ -n "$1" ]; then
+  _show_usage
+  exit
+fi
+
+# Forgive any fines on returned items.
+/opt/local/bin/vger_sqlplus_run vger_support $DIR/daily-forgive_fines_on_returned_items
+if [ -s "$DIR/daily-forgive_fines_on_returned_items.out" ]; then
+  RETURN_FORGIVES=`wc -l $DIR/daily-forgive_fines_on_returned_items.out|cut -c1-8` ;
+  echo "Forgiving $RETURN_FORGIVES fines on returned items." ;
+  /opt/local/bin/vger_addfeepost $DIR/daily-forgive_fines_on_returned_items.out $DIR/daily-forgive_fines_on_returned_items.err ;
+  mv $DIR/daily-forgive_fines_on_returned_items.out $DIR/daily-forgive_fines_on_returned_items.out.`date "+%Y%m%d"`
+else
+  echo "No returned items to forgive fines for."
+fi
+
+# 2009-08-06 added lines to remove old output files every quarter drickard
+find ${DIR} -type f -name 'daily-forgive_fines_on_returned_items.out.*' -mtime +90 -exec rm {} \;

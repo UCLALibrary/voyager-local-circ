@@ -1,0 +1,56 @@
+#!/bin/sh
+############################################################
+# Get Summer Session Only data. 
+# An output file is created called 
+# "summer_session_only_data.txt".
+#
+# Last revised: 2008-07-30 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0"
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+
+PREFIX=/m1/voyager/ucladb/local/circ
+QUERY=$PREFIX/summer_session_only_data.sql
+USERNAME=`cut -f1 /opt/local/bin/qdb_credentials`
+PASSWORD=`cut -f2 /opt/local/bin/qdb_credentials`
+
+#PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
+#LD_LIBRARY_PATH=/m1/voyager/ucladb/local/patron/lib
+#export PATH
+#export LD_LIBRARY_PATH
+# glo updated FreeTDS 2009-10-12; corrected bin path below, ld_library_path not needed with updated installation
+PATH=/usr/local/freetds/bin:$PATH       export PATH
+
+# No input parameters are necessary. 
+# If any are provided show usage and exit.
+if [ -n "$1" ]; then
+  _show_usage
+  exit
+fi
+
+QDB_DATA=$PREFIX/summer_session_only_data.txt
+
+if [ -f ${QDB_DATA} ]; then
+  echo "***** Removing old qdb data file ${QDB_DATA}."
+  rm ${QDB_DATA}
+fi
+
+# Run the query against the qdb database.
+echo "***** Running query file against the qdb database to create ${QDB_DATA}."
+TDSVER=8.0 tsql -H obiwan.qdb.ucla.edu -p 1433 -U ${USERNAME} -P ${PASSWORD} < ${QUERY} > ${QDB_DATA}
+
+echo "***** Removing the last line of the data file."
+/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
+
+if [ -f ${QDB_DATA}.tmp ]; then
+  echo "***** Removing qdb data file with extra line ${QDB_DATA}.tmp."
+  rm ${QDB_DATA}.tmp
+fi

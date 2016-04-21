@@ -1,0 +1,13 @@
+#!/bin/sh
+
+DIR=/m1/voyager/ucladb/local/circ/bin/
+DOW=`date +%w`
+DATE=`date +%m/%d/%y`
+IS_HOLIDAY=`$DIR/check_holiday.pl $DIR/university_holidays.txt $DATE`
+
+if [ $DOW -lt 6 -a $DOW -gt 0 ] && [ $IS_HOLIDAY -eq "0" ]
+then
+  echo True
+else
+  echo False
+fi

@@ -1,0 +1,79 @@
+WITH FEES AS
+(
+SELECT
+  TO_CHAR(trans_date, 'fmMM') dataMonth,
+  TO_CHAR(trans_date, 'YYYY') dataYear,
+  CAST(nvl(vu.unitid, 'UKN') AS CHAR(50)) loc,
+  -- The following tries to create a concept of an item-transaction
+  to_char(ff.patron_id) || '-' || to_char(ff.item_id) || '-' || to_char(ff.orig_charge_date,   'YYYY-MM') || '-' || to_char(ff.due_date,   'YYYY-MM') AS item,
+  -- fine_fee_type of 1 is Overdue, 2 is Lost Item Replacement
+  -- trans_type of 1 is Payment, 2 is Forgive, and 3 is Error (which is ignored)
+  -- 
+  -- $overdue_payment = decode(ff.fine_fee_type,   1,   decode(fft.trans_type,   1,   1,   0),   0)
+  -- $overdue_forgive = decode(ff.fine_fee_type,   1,   decode(fft.trans_type,   2,   1,   0),   0)
+  -- $lost_payment = decode(ff.fine_fee_type,   2,   decode(fft.trans_type,   1,   1,   0),   0)
+  -- $lost_forgive = decode(ff.fine_fee_type,   2,   decode(fft.trans_type,   2,   1,   0),   0)
+  -- 
+  -- We want to sum payments and forgives individually, and also sum the total transactions.
+  -- This ensures only one transaction-item is counted even though an individual 
+  -- transaction may be a payment and a forgive.
+  -- 
+  -- decode(SUM($nonlost_payment),   0,   decode(SUM($nonlost_forgive),   0,   0,   1),   1) AS non_lost,
+  -- SUM($nonlost_payment) AS nonlost_payment,
+  -- SUM($nonlost_forgive) AS nonlost_forgive,
+  -- decode(SUM($lost_payment),   0,   decode(SUM($lost_forgive),   0,   0,   1),   1) AS lost_item_replacement,
+  -- SUM($lost_payment) AS lost_item_replacement_payment,
+  -- SUM($lost_forgive) AS lost_item_replacement_forgive
+  decode(SUM(vger_support.LWS_CSC.NONLOST_PAYMENT(ff.fine_fee_type, fft.trans_type)),   0,   decode(SUM(vger_support.LWS_CSC.NONLOST_FORGIVE(ff.fine_fee_type, fft.trans_type)),   0,   0,   1),   1) AS nonlost,
+  SUM(vger_support.LWS_CSC.NONLOST_PAYMENT(ff.fine_fee_type, fft.trans_type)) as nonlost_payment,
+  SUM(vger_support.LWS_CSC.NONLOST_FORGIVE(ff.fine_fee_type, fft.trans_type)) as nonlost_forgive,
+  decode(SUM(vger_support.LWS_CSC.LOST_PAYMENT(ff.fine_fee_type, fft.trans_type)),   0,   decode(SUM(vger_support.LWS_CSC.LOST_FORGIVE(ff.fine_fee_type, fft.trans_type)),   0,   0,   1),   1) AS lost_item_replacement,
+  SUM(vger_support.LWS_CSC.LOST_PAYMENT(ff.fine_fee_type, fft.trans_type)) as lost_item_replacement_payment,
+  SUM(vger_support.LWS_CSC.LOST_FORGIVE(ff.fine_fee_type, fft.trans_type)) as lost_item_replacement_forgive
+FROM ucladb.fine_fee ff 
+LEFT OUTER JOIN ucladb.fine_fee_type fftp ON ff.fine_fee_type = fftp.fine_fee_type 
+LEFT OUTER JOIN ucladb.fine_fee_transactions fft ON ff.fine_fee_id = fft.fine_fee_id 
+LEFT OUTER JOIN ucladb.item i ON ff.item_id = i.item_id 
+LEFT OUTER JOIN
+  ucladb.circ_policy_locs cpl ON i.perm_location = cpl.location_id
+LEFT OUTER JOIN
+  ucladb.circ_policy_group cpg ON cpl.circ_group_id = cpg.circ_group_id
+LEFT OUTER JOIN
+  vger_support.PSS_VOYUNIT vu on cpl.circ_group_id = vu.circ_group_id
+LEFT OUTER JOIN ucladb.fine_fee_trans_type fftt ON fft.trans_type = fftt.transaction_type 
+LEFT OUTER JOIN ucladb.fine_fee_trans_method fftm ON fft.trans_method = fftm.method_type
+WHERE 
+  trans_date BETWEEN to_date(&1,   'YYYYMMDD')
+  AND to_date(&2,   'YYYYMMDD')
+  AND transaction_type <> 3
+GROUP BY 
+  trans_date,
+  vu.unitid,
+  to_char(ff.patron_id) || '-' || to_char(ff.item_id) || '-' || to_char(ff.orig_charge_date,   'YYYY-MM') || '-' || to_char(ff.due_date,   'YYYY-MM')
+)
+select 
+  categoryid || 
+  loc ||
+  cast(SUM(items) as char(38)) ||
+  cast(dataMonth as char(2)) ||
+  cast(dataYear as char(4)) data
+FROM
+(
+select '058' categoryid, loc, nonlost items, dataMonth, dataYear from FEES
+UNION ALL
+select '082' categoryid, loc, nonlost_payment items, dataMonth, dataYear from FEES
+UNION ALL
+select '083' categoryid, loc, nonlost_forgive items, dataMonth, dataYear from FEES
+UNION ALL
+select '059' categoryid, loc, lost_item_replacement items, dataMonth, dataYear from FEES
+UNION ALL
+select '084' categoryid, loc, lost_item_replacement_payment items, dataMonth, dataYear from FEES
+UNION ALL
+select '060' categoryid, loc, lost_item_replacement_forgive items, dataMonth, dataYear from FEES
+)
+group by 
+  dataYear,
+  dataMonth,
+  categoryid,
+  loc
+;

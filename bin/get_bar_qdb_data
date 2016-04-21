@@ -1,0 +1,111 @@
+#!/bin/sh
+############################################################
+# Get BAR qdb data. 
+# An output file is created called "bar_qdb_data.txt". The 
+# previous data file is renamed based on when the query was
+# run.
+#
+# Last revised: 2008-07-24 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0 data_output_file"
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+DIR=/m1/voyager/ucladb/local/circ
+QUERY=$DIR/bar_qdb_data_query.sql
+QUERY_LAST_RUN_FILE=$DIR/BAR_QDB_LAST_RUN
+USERNAME=`cut -f1 /opt/local/bin/qdb_credentials`
+#USERNAME=`cut -f1 /export/home/chunt/qdb_credentials`
+PASSWORD=`cut -f2 /opt/local/bin/qdb_credentials`
+#PASSWORD=`cut -f2 /export/home/chunt/qdb_credentials`
+
+#PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
+#LD_LIBRARY_PATH=/m1/voyager/ucladb/local/patron/lib
+#export PATH
+#export LD_LIBRARY_PATH
+# glo updated FreeTDS 2009-10-12; corrected bin path below, ld_library_path not needed with updated installation
+PATH=/usr/local/freetds/bin:$PATH       export PATH
+
+# Handle input parameters
+# data_output_file is required.
+if [ -n "$1" ]; then
+  DATA_FILE_FULL_PATH=$1
+else
+  _show_usage
+  exit
+fi
+
+# We must know when the query was last run.
+if [ ! -f ${QUERY_LAST_RUN_FILE} ]; then
+  echo "Error: File does not exist - ${QUERY_LAST_RUN_FILE}."
+  exit 1
+fi
+
+QUERY_LAST_RUN=`cat ${QUERY_LAST_RUN_FILE}`
+
+DATA_FILE=`basename ${DATA_FILE_FULL_PATH}`
+RENAMED_FILE=$DIR/${QUERY_LAST_RUN}_${DATA_FILE}
+
+if [ -f $DATA_FILE_FULL_PATH ]; then
+  echo "***** Renaming previous BAR qdb data file ${DATA_FILE} to ${QUERY_LAST_RUN}_${DATA_FILE}."
+  if [ -f $RENAMED_FILE ]; then
+    echo "Error: File exists - $RENAMED_FILE."
+    exit 1
+  else
+    mv $DATA_FILE_FULL_PATH $RENAMED_FILE
+  fi
+else
+  echo "Error: File does not exist - $DATA_FILE_FULL_PATH."
+  exit 1
+fi
+
+# Create the the query, including the posting_date parameter.
+# 20100205 drickard: updated the query to exclude written-off entries (the 997*/999* subcodes)
+# 20120924 drickard: updated query to match subcodes as char
+echo "***** Creating query file ${QUERY} for ${QUERY_LAST_RUN}."
+echo "select" > ${QUERY}
+echo "br_subcode_num, stu_id, acad_term, br_seq_num, convert(varchar,trans_paid_dt, 100) as trans_paid_dt, paid_appld_amt" >> ${QUERY}
+echo "from dbo.br_bill_detl bbd" >> ${QUERY}
+echo "where" >> ${QUERY}
+echo "  (user_dept_cd = '5415' or user_dept_cd = '5420' or user_dept_cd = '5445' or user_dept_cd = '5400' or user_dept_cd = '5465') and" >> ${QUERY}
+echo "  ((br_subcode_num between '22643' and '22678') or br_subcode_num in ('22417','22418')) and " >> ${QUERY}
+echo "  paid_appld_amt <> 0 and " >> ${QUERY}
+echo "  trans_paid_dt <> '1800-01-01 00:00:00.000' and" >> ${QUERY}
+echo "  trans_paid_dt >= '${QUERY_LAST_RUN}'" >> ${QUERY}
+echo "  and not exists" >> ${QUERY}
+echo "  (" >> ${QUERY}
+echo "  select * " >> ${QUERY}
+echo "  from dbo.br_bill_detl bbd2 " >> ${QUERY}
+echo "  where" >> ${QUERY}
+echo "  bbd.stu_id = bbd2.stu_id" >> ${QUERY}
+echo "  and bbd.br_invc_num = bbd2.br_invc_num" >> ${QUERY}
+echo "  and bbd2.br_subcode_num in ('99972','99973','99953','99954','99952','99964')" >> ${QUERY}
+echo "  )" >> ${QUERY}
+echo "go" >> ${QUERY}
+
+# Run the query against the qdb database.
+echo "***** Running query file against the qdb database to create ${DATA_FILE}."
+TDSVER=8.0 tsql -H obiwan.qdb.ucla.edu -p 1433 -U ${USERNAME} -P ${PASSWORD} < ${QUERY} > $DATA_FILE_FULL_PATH
+
+date "+%Y%m%d" > ${QUERY_LAST_RUN_FILE}
+
+# If there were results, remove the last line of the file.
+if [ -s ${DATA_FILE_FULL_PATH} ]; then
+  echo "***** Removing the last line of the data file."
+  /bin/perl -i.tmp -pe 'eof and undef $_' ${DATA_FILE_FULL_PATH}
+
+  if [ -f ${DATA_FILE_FULL_PATH}.tmp ]; then
+    echo "***** Removing qdb data file with extra line ${DATA_FILE_FULL_PATH}.tmp."
+    rm ${DATA_FILE_FULL_PATH}.tmp
+  fi
+fi
+
+# 20090727 added line to clear out old output (*_bar_qdb_data.txt) files drickard
+find $DIR -type f -name '*_bar_qdb_data.txt*' -mtime +90 -exec rm -f {} \;
+

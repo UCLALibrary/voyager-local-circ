@@ -1,0 +1,57 @@
+#!/bin/sh
+############################################################
+# Process BAR QDB transactions. 
+#
+# Last revised: 2008-11-14 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0"
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+DIR=/m1/voyager/ucladb/local/circ
+DATA_FILE=$DIR/bar_qdb_data.txt
+
+# No input parameters are necessary. 
+# If any are provided show usage and exit.
+if [ -n "$1" ]; then
+  _show_usage
+  exit
+fi
+
+# Get the BAR QDB data. 
+$DIR/bin/get_bar_qdb_data $DATA_FILE
+
+retcode=`echo $?`
+
+if [ $retcode = "0" ]; then
+  if [ -s ${DATA_FILE} ]; then
+    /opt/local/bin/vger_sqlldr_load vger_report $DATA_FILE $DIR/bar_qdb_data.ctl
+
+    if [ -f $DIR/update_reversals_from_bar.out ]; then
+      rm $DIR/update_reversals_from_bar.out
+    fi
+    if [ -f $DIR/update_payments_from_bar.out ]; then
+      rm $DIR/update_payments_from_bar.out
+    fi
+    /opt/local/bin/vger_sqlplus_run ucladb $DIR/update_reversals_from_bar
+    if [ -s $DIR/update_reversals_from_bar.out ]; then
+      echo "*** Error: Check $DIR/update_reversals_from_bar.out ***"
+    fi
+    /opt/local/bin/vger_sqlplus_run ucladb $DIR/update_payments_from_bar
+    if [ -s $DIR/update_payments_from_bar.out ]; then
+      echo "*** Error: Check $DIR/update_payments_from_bar.out ***"
+    fi
+    /opt/local/bin/vger_sqlplus_run vger_support $DIR/cmp_bar_processed
+    if [ -s $DIR/cmp_bar_processed.out ]; then
+      echo "*** Error: Check $DIR/cmp_bar_processed.out ***"
+    fi
+  fi
+else
+  echo "*** get_bar_qdb_data failed. ***"
+fi

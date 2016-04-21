@@ -1,0 +1,62 @@
+#!/bin/sh
+############################################################
+# Apply BAR transactions (payments and credits) to Voyager.
+# 
+# This must run during the hours BAR is available.
+#
+# Last revised: 2008-04-30 chunt
+############################################################
+
+_show_usage() {
+  echo "\nUSAGE:"
+  echo "$0"
+  exit 1
+}
+
+########################################
+# Main routine starts here
+
+DIR=/m1/voyager/ucladb/local/circ
+# To prevent extra lines in data output:
+SQLPLUS_RECSEP=off
+export SQLPLUS_RECSEP
+
+# No input parameters are necessary. 
+# If any are provided show usage and exit.
+if [ -n "$1" ]; then
+  _show_usage
+  exit
+fi
+
+# Retrieve and process BAR QDB data 
+$DIR/bin/process_bar_qdb
+
+# Suspend patrons with $100 or more oustanding BAR charges that
+# have aged four days.
+/opt/local/bin/vger_sqlplus_run vger_support $DIR/suspend_outstanding_bar
+if [ -s "$DIR/suspend_outstanding_bar.out" ]; then
+  SUSPENDED_PATRONS=`wc -l $DIR/suspend_outstanding_bar.out|cut -c1-8` ;
+  echo "Suspending $SUSPENDED_PATRONS patrons with more than max outstanding BAR charges." ;
+  /opt/local/bin/vger_susp $DIR/suspend_outstanding_bar.out $DIR/suspend_outstanding_bar.err ;
+  mv $DIR/suspend_outstanding_bar.out $DIR/suspend_outstanding_bar.out.`date "+%Y%m%d"`
+else
+  echo "No patrons with max outstanding BAR charges to suspend."
+fi
+
+# Clear pop-up notes relating to patrons who are no longer suspended 
+# because of outstanding BAR charges.
+/opt/local/bin/vger_sqlplus_run vger_support $DIR/delete_suspension_notes
+if [ -s "$DIR/delete_suspension_notes.out" ]; then
+  SUSPENSION_NOTES=`wc -l $DIR/delete_suspension_notes.out|cut -c1-8` ;
+  echo "Clearing $SUSPENSION_NOTES pop-up notes relating to patrons who are no longer suspended because of outstanding BAR charges." ;
+  /opt/local/bin/vger_delpatnote $DIR/delete_suspension_notes.out $DIR/delete_suspension_notes.err ;
+  mv $DIR/delete_suspension_notes.out $DIR/delete_suspension_notes.out.`date "+%Y%m%d"`
+else
+  echo "No pop-up notes relating to patrons who are no longer suspended be
+cause of outstanding BAR charges to clear."
+fi
+
+# 2009-08-06 drickard: clear out suspension files every quarter
+find ${DIR} -type f -name 'suspend_outstanding_bar.out.*' -mtime +90 -exec rm {} \;
+find ${DIR} -type f -name 'delete_suspension_notes.out.*' -mtime +90 -exec rm {} \;
+
