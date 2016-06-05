@@ -33,11 +33,11 @@ $DIR/bin/process_bar_qdb
 
 # Suspend patrons with $100 or more oustanding BAR charges that
 # have aged four days.
-/opt/local/bin/vger_sqlplus_run vger_support $DIR/suspend_outstanding_bar
+/usr/local/bin/vger_sqlplus_run vger_support $DIR/suspend_outstanding_bar
 if [ -s "$DIR/suspend_outstanding_bar.out" ]; then
   SUSPENDED_PATRONS=`wc -l $DIR/suspend_outstanding_bar.out|cut -c1-8` ;
   echo "Suspending $SUSPENDED_PATRONS patrons with more than max outstanding BAR charges." ;
-  /opt/local/bin/vger_susp $DIR/suspend_outstanding_bar.out $DIR/suspend_outstanding_bar.err ;
+  /usr/local/bin/vger_susp $DIR/suspend_outstanding_bar.out $DIR/suspend_outstanding_bar.err ;
   mv $DIR/suspend_outstanding_bar.out $DIR/suspend_outstanding_bar.out.`date "+%Y%m%d"`
 else
   echo "No patrons with max outstanding BAR charges to suspend."
@@ -45,11 +45,11 @@ fi
 
 # Clear pop-up notes relating to patrons who are no longer suspended 
 # because of outstanding BAR charges.
-/opt/local/bin/vger_sqlplus_run vger_support $DIR/delete_suspension_notes
+/usr/local/bin/vger_sqlplus_run vger_support $DIR/delete_suspension_notes
 if [ -s "$DIR/delete_suspension_notes.out" ]; then
   SUSPENSION_NOTES=`wc -l $DIR/delete_suspension_notes.out|cut -c1-8` ;
   echo "Clearing $SUSPENSION_NOTES pop-up notes relating to patrons who are no longer suspended because of outstanding BAR charges." ;
-  /opt/local/bin/vger_delpatnote $DIR/delete_suspension_notes.out $DIR/delete_suspension_notes.err ;
+  /usr/local/bin/vger_delpatnote $DIR/delete_suspension_notes.out $DIR/delete_suspension_notes.err ;
   mv $DIR/delete_suspension_notes.out $DIR/delete_suspension_notes.out.`date "+%Y%m%d"`
 else
   echo "No pop-up notes relating to patrons who are no longer suspended be

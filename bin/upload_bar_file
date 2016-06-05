@@ -3,7 +3,7 @@
 # Send latest BAR file to BAR.
 
 # Everything goes in here
-BIN=/opt/local/bin
+BIN=/usr/local/bin
 DIR=/m1/voyager/ucladb/local/circ
 #AIS_FTP_HOST=viper.ais.ucla.edu
 AIS_FTP_HOST=fx.it.ucla.edu

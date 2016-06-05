@@ -18,8 +18,8 @@ _show_usage() {
 # Main routine starts here
 
 PREFIX=/m1/voyager/ucladb/local/circ
-USERNAME=`cut -f1 /opt/local/bin/qdb_credentials`
-PASSWORD=`cut -f2 /opt/local/bin/qdb_credentials`
+USERNAME=`cut -f1 /usr/local/bin/qdb_credentials`
+PASSWORD=`cut -f2 /usr/local/bin/qdb_credentials`
 
 # 2009-10-14 gloriar: upgraded FreeTDS and moved its executables
 #PATH=/m1/voyager/ucladb/local/patron/bin:$PATH

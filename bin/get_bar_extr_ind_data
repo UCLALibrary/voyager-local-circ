@@ -18,9 +18,9 @@ _show_usage() {
 
 PREFIX=/m1/voyager/ucladb/local/circ
 QUERY=$PREFIX/bar_extr_ind_data.sql
-USERNAME=`cut -f1 /opt/local/bin/qdb_credentials`
+USERNAME=`cut -f1 /usr/local/bin/qdb_credentials`
 #USERNAME=`cut -f1 /export/home/chunt/qdb_credentials`
-PASSWORD=`cut -f2 /opt/local/bin/qdb_credentials`
+PASSWORD=`cut -f2 /usr/local/bin/qdb_credentials`
 #PASSWORD=`cut -f2 /export/home/chunt/qdb_credentials`
 
 #PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
