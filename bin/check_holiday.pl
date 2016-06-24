@@ -1,4 +1,4 @@
-#!/bin/perl
+#!/m1/shared/bin/perl -w
 ############################################################
 # This script takes a filename and date in format MM/DD/YY
 # as parameters and returns a 1 if the date is a University
