@@ -23,7 +23,7 @@ else
         my($holidays_file) = shift(@ARGV);
         my($day) = shift(@ARGV);
 
-	my(%holidays) = {};
+	my(%holidays) = ();
 
 	open(HOLIDAYS, $holidays_file) ||
 		die "$ARGV[0] cannot open $holidays_file"; 

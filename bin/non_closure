@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DIR=/m1/voyager/ucladb/local/circ/bin/
+DIR=/m1/voyager/ucladb/local/circ/bin
 DATE=`date +%m/%d/%y`
 IS_CLOSURE=`${DIR}/check_holiday.pl ${DIR}/closure.txt ${DATE}`
 
