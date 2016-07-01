@@ -31,7 +31,7 @@ retcode=`echo $?`
 
 if [ $retcode = "0" ]; then
   if [ -s ${DATA_FILE} ]; then
-    /usr/local/bin/vger_sqlldr_load vger_report $DATA_FILE $DIR/bar_qdb_data.ctl
+    ${VGER_SCRIPT}/vger_sqlldr_load vger_report $DATA_FILE $DIR/bar_qdb_data.ctl
 
     if [ -f $DIR/update_reversals_from_bar.out ]; then
       rm $DIR/update_reversals_from_bar.out
@@ -39,15 +39,15 @@ if [ $retcode = "0" ]; then
     if [ -f $DIR/update_payments_from_bar.out ]; then
       rm $DIR/update_payments_from_bar.out
     fi
-    /usr/local/bin/vger_sqlplus_run ucladb $DIR/update_reversals_from_bar
+    ${VGER_SCRIPT}/vger_sqlplus_run ucladb $DIR/update_reversals_from_bar
     if [ -s $DIR/update_reversals_from_bar.out ]; then
       echo "*** Error: Check $DIR/update_reversals_from_bar.out ***"
     fi
-    /usr/local/bin/vger_sqlplus_run ucladb $DIR/update_payments_from_bar
+    ${VGER_SCRIPT}/vger_sqlplus_run ucladb $DIR/update_payments_from_bar
     if [ -s $DIR/update_payments_from_bar.out ]; then
       echo "*** Error: Check $DIR/update_payments_from_bar.out ***"
     fi
-    /usr/local/bin/vger_sqlplus_run vger_support $DIR/cmp_bar_processed
+    ${VGER_SCRIPT}/vger_sqlplus_run vger_support $DIR/cmp_bar_processed
     if [ -s $DIR/cmp_bar_processed.out ]; then
       echo "*** Error: Check $DIR/cmp_bar_processed.out ***"
     fi
