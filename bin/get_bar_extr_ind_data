@@ -28,7 +28,7 @@ PASSWORD=`cut -f2 ${VGER_SCRIPT}/qdb_credentials`
 #export PATH
 #export LD_LIBRARY_PATH
 # glo updated FreeTDS 2009-10-12; corrected bin path below, ld_library_path not needed with updated installation
-PATH=/usr/local/freetds/bin:$PATH       export PATH
+#PATH=/usr/local/freetds/bin:$PATH       export PATH
 
 # No input parameters are necessary. 
 # If any are provided show usage and exit.
