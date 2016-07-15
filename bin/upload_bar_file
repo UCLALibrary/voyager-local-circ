@@ -3,7 +3,7 @@
 # Send latest BAR file to BAR.
 
 # Everything goes in here
-BIN=/usr/local/bin
+#BIN={BIN}
 DIR=/m1/voyager/ucladb/local/circ
 #AIS_FTP_HOST=viper.ais.ucla.edu
 AIS_FTP_HOST=fx.it.ucla.edu
@@ -15,7 +15,7 @@ DOWNLOADED_BAR_FILE_FULLPATH=$DIR/downloaded_bar_file.txt
 # enable following code 9 October
 # set FTP user & retrieve pwd
 USER=bar_library
-PWD=`${BIN}/get_value.pl ${BIN}/ais_credentials ${USER}`
+PASSWORD=`${VGER_SCRIPT}/get_value.pl ${VGER_CONFIG}/ais_credentials ${USER}`
 
 # Remove previously downloaded file.
 
@@ -27,7 +27,7 @@ fi
 # enable user lines & alternate FTP call on 9 October
 cd ${DIR}
 (
-  echo "user ${USER} ${PWD}"
+  echo "user ${USER} ${PASSWORD}"
   echo "ascii"
   echo "cd pub"
   echo "get $BAR_FILE_NAME $DOWNLOADED_BAR_FILE"
@@ -43,7 +43,7 @@ if [ -f $DOWNLOADED_BAR_FILE_FULLPATH ]; then
   else
     # Upload the BAR file to BAR.
     (
-      echo "user ${USER} ${PWD}"
+      echo "user ${USER} ${PASSWORD}"
       echo "ascii"
       echo "cd pub"
       echo "put $BAR_FILE_NAME"
