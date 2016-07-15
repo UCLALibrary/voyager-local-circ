@@ -18,12 +18,12 @@ _show_usage() {
 # Main routine starts here
 
 PREFIX=/m1/voyager/ucladb/local/circ
-USERNAME=`cut -f1 /usr/local/bin/qdb_credentials`
-PASSWORD=`cut -f2 /usr/local/bin/qdb_credentials`
+USERNAME=`cut -f1 ${VGER_CONFIG}/qdb_credentials`
+PASSWORD=`cut -f2 ${VGER_CONFIG}/qdb_credentials`
 
 # 2009-10-14 gloriar: upgraded FreeTDS and moved its executables
 #PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
-PATH=/usr/local/freetds/bin:$PATH	export PATH
+#PATH=/usr/local/freetds/bin:$PATH	export PATH
 # 2009-10-14 gloriar: upgraded FreeTDS executables find their libraries in
 #   /usr/local/lib, which requires no entry in LD_LIBRARY_PATH
 #LD_LIBRARY_PATH=/m1/voyager/ucladb/local/patron/lib
@@ -54,7 +54,7 @@ echo "***** Running query file against the qdb database to create ${QDB_DATA}."
 TDSVER=8.0 tsql -H obiwan.qdb.ucla.edu -p 1433 -U ${USERNAME} -P ${PASSWORD} < ${QUERY} > ${QDB_DATA}
 
 echo "***** Removing the last line of the data file."
-/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
+/m1/shared/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
 
 if [ -f ${QDB_DATA}.tmp ]; then
   echo "***** Removing qdb data file with extra line ${QDB_DATA}.tmp."
