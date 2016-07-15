@@ -16,6 +16,9 @@ _show_usage() {
 ########################################
 # Main routine starts here
 
+# Get voyager environment, for vars and for cron
+. `echo $HOME | sed "s/$LOGNAME/voyager/"`/.profile.local
+
 DIR=/m1/voyager/ucladb/local/circ
 # To prevent extra lines in data output:
 SQLPLUS_RECSEP=off
