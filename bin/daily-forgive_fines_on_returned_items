@@ -1,8 +1,6 @@
 #!/bin/sh
 ############################################################
 # Forgive lost item replacement fines on returned items. 
-#
-# Last revised: 2008-04-29 chunt
 ############################################################
 
 _show_usage() {
@@ -26,9 +24,9 @@ fi
 # Forgive any fines on returned items.
 ${VGER_SCRIPT}/vger_sqlplus_run vger_support $DIR/daily-forgive_fines_on_returned_items
 if [ -s "$DIR/daily-forgive_fines_on_returned_items.out" ]; then
-  RETURN_FORGIVES=`wc -l $DIR/daily-forgive_fines_on_returned_items.out|cut -c1-8` ;
-  echo "Forgiving $RETURN_FORGIVES fines on returned items." ;
-  ${VGER_SCRIPT}/vger_addfeepost $DIR/daily-forgive_fines_on_returned_items.out $DIR/daily-forgive_fines_on_returned_items.err ;
+  RETURN_FORGIVES=`wc -l $DIR/daily-forgive_fines_on_returned_items.out | cut -f1 -d' '`
+  echo "Forgiving $RETURN_FORGIVES fines on returned items."
+  ${VGER_SCRIPT}/vger_addfeepost $DIR/daily-forgive_fines_on_returned_items.out $DIR/daily-forgive_fines_on_returned_items.err
   mv $DIR/daily-forgive_fines_on_returned_items.out $DIR/daily-forgive_fines_on_returned_items.out.`date "+%Y%m%d"`
 else
   echo "No returned items to forgive fines for."
