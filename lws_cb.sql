@@ -308,16 +308,22 @@
   END;
 
   /*  The GET_DATE function takes a trans_note field of a fine fee transaction 
-      and returns the date of the BAR transaction.
+      and returns the date of the BAR transaction.  It uses a regular expression
+      to constrain the data to valid dates in the given format.
       
-      Last revised: 2008-07-09 chunt
+      Last revised: 2017-12-12 akohler
   */
   FUNCTION GET_DATE(
     p_trans_note ucladb.FINE_FEE_TRANSACTIONS.TRANS_NOTE%type
   )
   RETURN date AS 
+    v_date date;
   BEGIN
-    return to_date(substr(p_trans_note, 1, 8), 'MM/DD/YY');
+    select to_date(substr(p_trans_note, 1, 8), 'MM/DD/YY') into v_date
+    from dual
+    where regexp_like(p_trans_note, '^\d{2}/\d{2}/\d{2}'); -- start of note is not 2 digits slash 2 digits slash 2 digits
+
+    return v_date;
   END;
 
   /*  The GET_SUBCODE function takes a trans_note field of a fine fee 
