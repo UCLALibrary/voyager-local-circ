@@ -102,7 +102,7 @@ where
   -- Exclude reversals which have already been credited in BAR.
   and (nvl(substr(fft_br.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
   -- exclude libbill reversals
-  and (nvl(substr(fft_br.trans_note, 10, 19), '<NULL>') <> 'Credited in LibBill')
+  and (fft_br.trans_note not like '%LibBill%')
   -- Exclude any accidental duplicate reversals a staff member may have created.
   -- These are for the full fine amount.
   and not exists

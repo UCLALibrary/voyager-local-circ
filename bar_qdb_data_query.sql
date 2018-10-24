@@ -6,7 +6,7 @@ where
   ((br_subcode_num between '22643' and '22678') or br_subcode_num in ('22417','22418')) and 
   paid_appld_amt <> 0 and 
   trans_paid_dt <> '1800-01-01 00:00:00.000' and
-  trans_paid_dt >= '20160420'
+  trans_paid_dt >= '20181023'
   and not exists
   (
   select * 
