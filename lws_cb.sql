@@ -342,16 +342,27 @@
   /*  The GET_SEQNO function takes a trans_note field of a fine fee transaction 
         and returns the sequence number if it exists.
       
-      Last revised: 2007-12-10 chunt
+      Last revised: 2018-10-23 drickard
   */
   FUNCTION GET_SEQNO(
     p_trans_note ucladb.FINE_FEE_TRANSACTIONS.TRANS_NOTE%type
   )
   RETURN varchar2 AS 
+    v_substring varchar2(4);
+    v_temp number;
   BEGIN
-    return substr(p_trans_note, 50, 4);
+    --return substr(p_trans_note, 50, 4);
+    v_substring := substr(p_trans_note, 50, 4);
+    -- In PL/SQL, to_number() throws ORA-06502 value error if it fails.
+    -- If so, return a dummy value in exception block below; otherwise, return the substring.
+    v_temp := to_number(v_substring);
+    return v_substring;
+    
+    exception
+      when VALUE_ERROR then
+        return '0001';
   END;
-
+  
   /*  The GET_SUBCODE_KEY function takes circ_group_id and location_code fields
         and returns the circ_group_id unless the location_code matches the East
         Asian Library in which case it returns -1.
