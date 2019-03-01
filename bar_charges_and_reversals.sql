@@ -102,7 +102,8 @@ where
   -- Exclude reversals which have already been credited in BAR.
   and (nvl(substr(fft_br.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
   -- exclude libbill reversals
-  and (fft_br.trans_note not like '%LibBill%')
+  and (nvl(fft_br.trans_note, '<NULL>') not like '%LibBill%')
+  and (nvl(fft_br.trans_note, '<NULL>') not like '%CS%')
   -- Exclude any accidental duplicate reversals a staff member may have created.
   -- These are for the full fine amount.
   and not exists
@@ -215,6 +216,8 @@ select
   ) bar_line
 from 
   bar_reversals br
+where
+  vger_support.lws_cb.get_term(bursar_transfer_note) not like '%CS%'
 order by 1, 2, 3, 4, 5, 6
 )
 ;

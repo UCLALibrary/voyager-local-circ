@@ -57,7 +57,7 @@ set
       -- Exclude reversals which have already been credited in BAR.
       (nvl(substr(fft_br.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
 	  -- exclude libbill refunds
-	  and (fft_br.trans_note not like '%LibBill%')
+	  and (nvl(fft_br.trans_note, '<NULL>') not like '%LibBill%')
   )
 where 
   exists 
@@ -79,6 +79,6 @@ where
       b.paid_appld_amt < 0 and b.processed is null and
       -- Exclude reversals which have already been credited in BAR.
       (nvl(substr(fft_br.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
-	  and (fft_br.trans_note not like '%LibBill%')
+	  and (nvl(fft_br.trans_note, '<NULL>') not like '%LibBill%')
   )
 ;
