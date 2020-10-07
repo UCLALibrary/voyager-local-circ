@@ -68,6 +68,11 @@ set
         (nvl(substr(fft_br.trans_note, 10, 11), '<NULL>') <> 'Sent to BAR') and
         -- Exclude reversals which have already been credited in BAR.
         (nvl(substr(fft_br.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
+        -- Exclude LibBill refunds
+        and (nvl(fft_br.trans_note, '<NULL>') not like '%LibBill%')
+        and (nvl(fft_br.trans_note, '<NULL>') not like '%CS%')
+		and (nvl(fft_bt.trans_note, '<NULL>') not like '%LibBill%')
+		and (nvl(fft_bt.trans_note, '<NULL>') not like '%CS%')
         -- Exclude any accidental duplicate reversals a staff member may have created.
         -- These are for the full fine amount.
         and not exists
@@ -111,6 +116,11 @@ where
       (nvl(substr(fft_br_upd.trans_note, 10, 11), '<NULL>') <> 'Sent to BAR') and
       -- Exclude reversals which have already been credited in BAR.
       (nvl(substr(fft_br_upd.trans_note, 10, 15), '<NULL>') <> 'Credited in BAR')
+      -- Exclude LibBill refunds
+      and (nvl(fft_br_upd.trans_note, '<NULL>') not like '%LibBill%')
+      and (nvl(fft_br_upd.trans_note, '<NULL>') not like '%CS%')
+      and (nvl(fft_bt.trans_note, '<NULL>') not like '%LibBill%')
+      and (nvl(fft_bt.trans_note, '<NULL>') not like '%CS%')
       -- Exclude any accidental duplicate reversals a staff member may have created.
       -- These are for the full fine amount.
       and not exists

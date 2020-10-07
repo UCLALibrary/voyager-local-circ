@@ -18,9 +18,9 @@ _show_usage() {
 
 PREFIX=/m1/voyager/ucladb/local/circ
 QUERY=$PREFIX/bar_extr_ind_data.sql
-USERNAME=`cut -f1 /usr/local/bin/qdb_credentials`
+USERNAME=`cut -f1 ${VGER_SCRIPT}/qdb_credentials`
 #USERNAME=`cut -f1 /export/home/chunt/qdb_credentials`
-PASSWORD=`cut -f2 /usr/local/bin/qdb_credentials`
+PASSWORD=`cut -f2 ${VGER_SCRIPT}/qdb_credentials`
 #PASSWORD=`cut -f2 /export/home/chunt/qdb_credentials`
 
 #PATH=/m1/voyager/ucladb/local/patron/bin:$PATH
@@ -28,7 +28,7 @@ PASSWORD=`cut -f2 /usr/local/bin/qdb_credentials`
 #export PATH
 #export LD_LIBRARY_PATH
 # glo updated FreeTDS 2009-10-12; corrected bin path below, ld_library_path not needed with updated installation
-PATH=/usr/local/freetds/bin:$PATH       export PATH
+#PATH=/usr/local/freetds/bin:$PATH       export PATH
 
 # No input parameters are necessary. 
 # If any are provided show usage and exit.
@@ -49,7 +49,7 @@ echo "***** Running query file against the qdb database to create ${QDB_DATA}."
 TDSVER=8.0 tsql -H obiwan.qdb.ucla.edu -p 1433 -U ${USERNAME} -P ${PASSWORD} < ${QUERY} > ${QDB_DATA}
 
 echo "***** Removing the last line of the data file."
-/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
+/m1/shared/bin/perl -i.tmp -pe 'eof and undef $_' ${QDB_DATA}
 
 if [ -f ${QDB_DATA}.tmp ]; then
   echo "***** Removing qdb data file with extra line ${QDB_DATA}.tmp."

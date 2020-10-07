@@ -1,4 +1,4 @@
-#!/bin/perl
+#!/m1/shared/bin/perl -w
 ############################################################
 # This script takes a filename and date in format MM/DD/YY
 # as parameters and returns a 1 if the date is a University
@@ -23,7 +23,7 @@ else
         my($holidays_file) = shift(@ARGV);
         my($day) = shift(@ARGV);
 
-	my(%holidays) = {};
+	my(%holidays) = ();
 
 	open(HOLIDAYS, $holidays_file) ||
 		die "$ARGV[0] cannot open $holidays_file"; 
