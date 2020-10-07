@@ -21,9 +21,13 @@ bar_qdb_data.txt
 *_bar_qdb_data.txt
 daily-forgive_fines_on_returned_items.out*
 daily-refund_bar_charges_on_returned_items.out*
+delete_libbill_notes.out*
 delete_suspension_notes.out*
 downloaded_bar_file.txt
+forgive_libbill_returns.out*
 post_bar_charges.out*
+post_libbill_trans*
+suspend_libbill.out*
 suspend_outstanding_bar.out*
 ucla.libr.br0.0001.txt*
 
